@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design Tokens ──────────────────────────────────────────────── */
+:root {
+  --color-bg-primary: #0a0a0a;
+  --color-bg-surface: #141414;
+  --color-bg-elevated: #1c1c1c;
+  --color-accent: #e879f9;
+  --color-accent-dim: #a21caf;
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a3a3a3;
+  --color-text-muted: #525252;
+  --color-border: #262626;
+  --color-border-subtle: #1a1a1a;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+/* ─── Reset ───────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100dvh;
+}
+
+/* ─── Focus ring ──────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
