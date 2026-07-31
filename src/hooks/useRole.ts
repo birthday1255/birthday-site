@@ -41,7 +41,7 @@ export function useRole(): UseRoleReturn {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok && !cancelled) {
-        const data = (await response.json()) as { role: UserRole };
+        const data = (await response.json()) as { role: UserRole | null };
         setRole(data.role);
       }
       if (!cancelled) {

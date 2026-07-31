@@ -1,11 +1,14 @@
 /**
- * GET /api/users — List all Firestore user profiles (organizer only).
+ * GET /api/users — List Firestore user profiles (organizer only).
  *
- * Returns users filtered by role query param, e.g. ?role=guest.
- * Without a role param, returns all users.
+ * Query params:
+ *   role=guest          — filter by role
+ *   visitedToday=true   — only guests who visited today (IST)
  */
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/middleware/rbac";
+import { getGuestUsers } from "@/lib/firestore/users";
+import { visitedTodayIST } from "@/lib/utils/visitTracking";
 import { getAdminApp } from "@/lib/firebase/admin";
 import { getFirestore } from "firebase-admin/firestore";
 import type { UserProfile } from "@/types/user";
@@ -14,18 +17,29 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     await requireRole(request, ["organizer"]);
 
-    const db = getFirestore(getAdminApp());
     const roleFilter = request.nextUrl.searchParams.get("role");
+    const visitedToday = request.nextUrl.searchParams.get("visitedToday") === "true";
 
-    let query: FirebaseFirestore.Query = db.collection("users");
-    if (roleFilter) {
-      query = query.where("role", "==", roleFilter);
+    let users: UserProfile[];
+
+    if (roleFilter === "guest" || visitedToday) {
+      users = await getGuestUsers();
+    } else {
+      const db = getFirestore(getAdminApp());
+      const snap = await db
+        .collection("users")
+        .orderBy("createdAt", "desc")
+        .get();
+      users = snap.docs.map(
+        (doc) => ({ uid: doc.id, ...doc.data() } as UserProfile)
+      );
     }
 
-    const snap = await query.orderBy("createdAt", "desc").get();
-    const users: UserProfile[] = snap.docs.map(
-      (doc) => ({ uid: doc.id, ...doc.data() } as UserProfile)
-    );
+    if (visitedToday) {
+      users = users.filter((u) => visitedTodayIST(u.lastVisitedAt));
+    } else if (roleFilter && roleFilter !== "guest") {
+      users = users.filter((u) => u.role === roleFilter);
+    }
 
     return NextResponse.json({ users });
   } catch (error: unknown) {

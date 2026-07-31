@@ -113,3 +113,43 @@ export async function deleteWishFile(fileId: string): Promise<void> {
   const storage = new Storage(getServerClient());
   await storage.deleteFile(WISHES_BUCKET_ID, fileId);
 }
+
+/**
+ * Uploads a media file to the wishes bucket via the Appwrite REST API.
+ *
+ * @param fileId - Unique Appwrite file ID (server-generated).
+ * @param buffer - Raw file bytes.
+ * @param fileName - Original filename for metadata.
+ * @param mimeType - MIME type of the uploaded file.
+ * @returns The Appwrite file ID stored in Firestore wish metadata.
+ */
+export async function uploadWishFile(
+  fileId: string,
+  buffer: Buffer,
+  fileName: string,
+  mimeType: string
+): Promise<string> {
+  const formData = new FormData();
+  formData.append("fileId", fileId);
+  formData.append(
+    "file",
+    new Blob([new Uint8Array(buffer)], { type: mimeType }),
+    fileName
+  );
+
+  const url = `${apiBase()}/storage/buckets/${encodeURIComponent(WISHES_BUCKET_ID)}/files`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: serverHeaders(),
+    body: formData,
+  });
+
+  if (!res.ok) {
+    throw new Error(
+      `Appwrite upload failed: ${res.status} ${res.statusText}`
+    );
+  }
+
+  const data = (await res.json()) as { $id: string };
+  return data.$id;
+}

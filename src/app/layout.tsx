@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default: "Birthday 2026",
     template: "%s — Birthday 2026",
   },
-  description: "A private birthday celebration — invite only.",
+  description: "Sign in and send a birthday wish.",
   robots: { index: false, follow: false },
 };
 

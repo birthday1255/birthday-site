@@ -17,4 +17,6 @@ export interface UserProfile {
   photoURL: string;
   role: UserRole;
   createdAt: Timestamp;
+  /** Updated on every session validation — used for daily visit counts. */
+  lastVisitedAt?: Timestamp;
 }

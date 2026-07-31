@@ -1,36 +1,38 @@
 "use client";
 
 /**
- * Landing page — shown to all visitors before authentication.
+ * Landing page — public entry point for all visitors.
  *
- * Client component: needs onClick handler for Firebase Auth popup.
- * On successful sign-in the user is redirected by middleware.ts to the
- * appropriate dashboard based on their Firestore role.
+ * Sign in with Google → auto-assigned guest role → redirected by role.
  */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithGoogle } from "@/lib/firebase/auth";
+import { roleRedirectPath } from "@/lib/utils/roleRedirect";
+import type { UserRole } from "@/types/user";
 
 export default function LandingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSignIn() {
+  async function handleSignIn(): Promise<void> {
     setLoading(true);
     setError(null);
     try {
       const user = await signInWithGoogle();
-
-      // Exchange the Firebase ID token for a verified session on our server.
       const idToken = await user.getIdToken();
-      await fetch("/api/auth/session", {
+      const res = await fetch("/api/auth/session", {
         method: "GET",
         headers: { Authorization: `Bearer ${idToken}` },
       });
 
-      // Middleware will redirect to the correct dashboard based on role.
-      router.refresh();
+      if (!res.ok) {
+        throw new Error("Session setup failed. Try again.");
+      }
+
+      const data = (await res.json()) as { role: UserRole | null };
+      router.push(roleRedirectPath(data.role));
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Sign-in failed. Try again.";
@@ -49,12 +51,14 @@ export default function LandingPage() {
           <h1 className="text-3xl font-bold text-white tracking-tight">
             Birthday 2026
           </h1>
-          <p className="text-neutral-400">A private celebration — invite only.</p>
+          <p className="text-neutral-400">
+            Sign in to visit and send a birthday wish.
+          </p>
         </div>
 
         <button
           id="sign-in-google"
-          onClick={handleSignIn}
+          onClick={() => void handleSignIn()}
           disabled={loading}
           aria-label="Sign in with Google"
           className="w-full px-6 py-3 bg-white text-neutral-900 rounded-lg
@@ -66,10 +70,7 @@ export default function LandingPage() {
         </button>
 
         {error && (
-          <p
-            role="alert"
-            className="text-sm text-red-400 break-words"
-          >
+          <p role="alert" className="text-sm text-red-400 break-words">
             {error}
           </p>
         )}

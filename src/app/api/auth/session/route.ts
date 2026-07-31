@@ -2,12 +2,18 @@
  * GET /api/auth/session
  *
  * Validates the caller's Firebase JWT, upserts their Firestore profile,
- * and returns their uid and assigned role. Called by useRole hook on sign-in.
+ * assigns a default guest role when needed, records the visit, and returns
+ * their uid and role. Called by useRole hook on sign-in.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
 import { getAdminApp } from "@/lib/firebase/admin";
-import { getUserProfile, upsertUserProfile } from "@/lib/firestore/users";
+import {
+  ensureGuestRole,
+  getUserProfile,
+  recordVisit,
+  upsertUserProfile,
+} from "@/lib/firestore/users";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const authHeader = request.headers.get("Authorization");
@@ -21,7 +27,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const decoded = await getAuth(getAdminApp()).verifyIdToken(token);
 
-    // Keep the Firestore profile fresh on every session call.
     await upsertUserProfile({
       uid: decoded.uid,
       displayName: decoded.name ?? "",
@@ -29,11 +34,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       photoURL: decoded.picture ?? "",
     });
 
+    const role = await ensureGuestRole(decoded.uid);
+    await recordVisit(decoded.uid);
+
     const profile = await getUserProfile(decoded.uid);
 
     return NextResponse.json({
       uid: decoded.uid,
-      role: profile?.role ?? null,
+      role: profile?.role ?? role,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";

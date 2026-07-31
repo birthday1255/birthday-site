@@ -68,3 +68,25 @@ export async function updateWish(
 export async function deleteWish(wishId: string): Promise<void> {
   await db.collection(COLLECTION).doc(wishId).delete();
 }
+
+/**
+ * Returns the most recent wish submitted by a given author, if any.
+ *
+ * @param authorUid - Firebase Auth UID of the wish author.
+ */
+export async function getWishByAuthorUid(
+  authorUid: string
+): Promise<Wish | null> {
+  const snap = await db
+    .collection(COLLECTION)
+    .where("authorUid", "==", authorUid)
+    .limit(1)
+    .get();
+
+  if (snap.empty) {
+    return null;
+  }
+
+  const doc = snap.docs[0];
+  return { id: doc.id, ...doc.data() } as Wish;
+}
