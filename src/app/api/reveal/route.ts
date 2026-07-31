@@ -7,7 +7,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getFirestore } from "firebase-admin/firestore";
-import { adminApp } from "@/lib/firebase/admin";
+import { getAdminApp } from "@/lib/firebase/admin";
 import { requireRole } from "@/lib/middleware/rbac";
 import { logActivity } from "@/lib/firestore/activity";
 
@@ -16,7 +16,7 @@ const REVEAL_DOC = "config/reveal";
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     await requireRole(request, ["organizer", "guest", "birthday_person"]);
-    const db = getFirestore(adminApp);
+    const db = getFirestore(getAdminApp());
     const snap = await db.doc(REVEAL_DOC).get();
     return NextResponse.json(snap.data() ?? { is_revealed: false });
   } catch (error: unknown) {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       reveal_timestamp?: string;
     };
 
-    const db = getFirestore(adminApp);
+    const db = getFirestore(getAdminApp());
     await db.doc(REVEAL_DOC).set(body, { merge: true });
     await logActivity(ctx.uid, "reveal.triggered", REVEAL_DOC);
 

@@ -5,10 +5,10 @@
  * See ARCHITECTURE.md §6 for the full data model.
  */
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { adminApp } from "../firebase/admin";
+import { getAdminApp } from "../firebase/admin";
 import type { UserProfile, UserRole } from "@/types/user";
 
-const db = getFirestore(adminApp);
+const db = getFirestore(getAdminApp());
 const COLLECTION = "users";
 
 /**

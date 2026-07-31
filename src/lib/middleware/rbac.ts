@@ -10,7 +10,7 @@
  *   API route → requireRole() (full JWT verify + role check)
  */
 import { getAuth } from "firebase-admin/auth";
-import { adminApp } from "../firebase/admin";
+import { getAdminApp } from "../firebase/admin";
 import { getUserProfile } from "../firestore/users";
 import type { UserRole } from "@/types/user";
 import type { NextRequest } from "next/server";
@@ -52,7 +52,7 @@ export async function requireRole(
     throw new Error("Missing Authorization header");
   }
 
-  const decoded = await getAuth(adminApp).verifyIdToken(token);
+  const decoded = await getAuth(getAdminApp()).verifyIdToken(token);
   const profile = await getUserProfile(decoded.uid);
 
   if (!profile) {

@@ -8,10 +8,10 @@
  * See ARCHITECTURE.md §6 for the full data model.
  */
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { adminApp } from "../firebase/admin";
+import { getAdminApp } from "../firebase/admin";
 import type { ActivityAction, ActivityEvent } from "@/types/activity";
 
-const db = getFirestore(adminApp);
+const db = getFirestore(getAdminApp());
 const COLLECTION = "activity";
 
 /**

@@ -1,9 +1,13 @@
 /**
  * Firebase Admin SDK initializer — SERVER-SIDE ONLY.
  *
- * Must never be imported from client components or files under src/app/
- * that are not API routes. Uses FIREBASE_ADMIN_SERVICE_ACCOUNT env var
- * which is only available in the Vercel serverless function runtime.
+ * Uses lazy initialization: the Admin app is created on first call to
+ * getAdminApp(), NOT at module import time. This prevents Next.js from
+ * crashing during the build-time "Collecting page data" phase when env vars
+ * may not be valid JSON yet (e.g. placeholder values in CI).
+ *
+ * Must never be imported from client components or pages that are not
+ * API routes.
  */
 import {
   getApps,
@@ -12,10 +16,24 @@ import {
   type App as AdminApp,
 } from "firebase-admin/app";
 
-function createAdminApp(): AdminApp {
-  // Reuse the existing admin app across hot-reloads in development.
+let _adminApp: AdminApp | null = null;
+
+/**
+ * Returns the Firebase Admin SDK app instance.
+ * Initializes on first call; subsequent calls return the cached instance.
+ *
+ * @throws {Error} If FIREBASE_ADMIN_SERVICE_ACCOUNT is missing or not valid JSON.
+ */
+export function getAdminApp(): AdminApp {
+  // Return cached instance across hot-reloads and repeated calls.
+  if (_adminApp !== null) {
+    return _adminApp;
+  }
+
+  // Reuse an already-initialized Admin app (e.g. from a previous module load).
   if (getApps().length > 0) {
-    return getApps()[0];
+    _adminApp = getApps()[0];
+    return _adminApp;
   }
 
   const serviceAccountJson = process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT;
@@ -23,17 +41,21 @@ function createAdminApp(): AdminApp {
   if (!serviceAccountJson) {
     throw new Error(
       "FIREBASE_ADMIN_SERVICE_ACCOUNT is not set. " +
-        "Add it to your Vercel environment variables or .env.local."
+        "Add the full service account JSON as a single-line string to " +
+        "your Vercel environment variables or .env.local."
     );
   }
 
-  const credential = cert(
-    JSON.parse(serviceAccountJson) as Parameters<typeof cert>[0]
-  );
+  let serviceAccount: Parameters<typeof cert>[0];
+  try {
+    serviceAccount = JSON.parse(serviceAccountJson) as typeof serviceAccount;
+  } catch {
+    throw new Error(
+      "FIREBASE_ADMIN_SERVICE_ACCOUNT is not valid JSON. " +
+        "Ensure the value is a single-line JSON string with no line breaks."
+    );
+  }
 
-  return initializeApp({ credential });
+  _adminApp = initializeApp({ credential: cert(serviceAccount) });
+  return _adminApp;
 }
-
-const adminApp: AdminApp = createAdminApp();
-
-export { adminApp };

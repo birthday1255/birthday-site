@@ -6,7 +6,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { adminApp } from "@/lib/firebase/admin";
+import { getAdminApp } from "@/lib/firebase/admin";
 import { getUserProfile, upsertUserProfile } from "@/lib/firestore/users";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const decoded = await getAuth(adminApp).verifyIdToken(token);
+    const decoded = await getAuth(getAdminApp()).verifyIdToken(token);
 
     // Keep the Firestore profile fresh on every session call.
     await upsertUserProfile({
