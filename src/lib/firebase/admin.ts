@@ -46,9 +46,15 @@ export function getAdminApp(): AdminApp {
     );
   }
 
-  let serviceAccount: Parameters<typeof cert>[0];
+  let serviceAccount: Parameters<typeof cert>[0] & { private_key?: string };
   try {
-    serviceAccount = JSON.parse(serviceAccountJson) as typeof serviceAccount;
+    serviceAccount = JSON.parse(serviceAccountJson);
+    
+    // Vercel sometimes escapes newlines in environment variables.
+    // If the private key contains literal '\n' strings, replace them with actual newline characters.
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+    }
   } catch {
     throw new Error(
       "FIREBASE_ADMIN_SERVICE_ACCOUNT is not valid JSON. " +
