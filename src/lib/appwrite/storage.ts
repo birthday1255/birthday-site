@@ -10,7 +10,7 @@
  *
  * See ARCHITECTURE.md §7 for bucket layout and permission model.
  */
-import { Client, Storage, InputFile } from "node-appwrite";
+import { Client, Storage } from "node-appwrite";
 
 const WISHES_BUCKET_ID =
   process.env.NEXT_PUBLIC_APPWRITE_WISHES_BUCKET_ID ?? "";
@@ -80,52 +80,6 @@ async function createFileToken(
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
-
-/**
- * Uploads a file buffer to the wishes bucket (server-side proxy).
- *
- * Guests do NOT upload directly to Appwrite — they POST multipart/form-data
- * to /api/wishes/upload which calls this function after RBAC verification.
- * This keeps the Appwrite API key strictly server-side.
- *
- * @param buffer   - File content as a Node.js Buffer.
- * @param filename - Original filename (used for MIME detection by Appwrite).
- * @returns The Appwrite file ID of the created file.
- */
-export async function uploadWishFile(
-  buffer: Buffer,
-  filename: string
-): Promise<string> {
-  const storage = new Storage(getServerClient());
-  const inputFile = InputFile.fromBuffer(buffer, filename);
-  const result = await storage.createFile(
-    WISHES_BUCKET_ID,
-    "unique()",
-    inputFile
-  );
-  return result.$id;
-}
-
-/**
- * Uploads a file buffer to the personal gallery bucket (organizer only).
- *
- * @param buffer   - File content as a Node.js Buffer.
- * @param filename - Original filename.
- * @returns The Appwrite file ID of the created file.
- */
-export async function uploadGalleryFile(
-  buffer: Buffer,
-  filename: string
-): Promise<string> {
-  const storage = new Storage(getServerClient());
-  const inputFile = InputFile.fromBuffer(buffer, filename);
-  const result = await storage.createFile(
-    GALLERY_BUCKET_ID,
-    "unique()",
-    inputFile
-  );
-  return result.$id;
-}
 
 /**
  * Generates a short-lived view token for a specific file in the wishes bucket.
