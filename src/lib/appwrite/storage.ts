@@ -1,66 +1,157 @@
 /**
  * Appwrite storage helpers — SERVER-SIDE ONLY.
  *
- * All token generation happens here. The raw APPWRITE_API_KEY is never
- * sent to the browser; only short-lived tokens (TTL: 15 min) are returned
- * to clients via the gallery/upload-token API route.
+ * File uploads are proxied through Vercel API routes using the server-side
+ * API key. Token generation uses the Appwrite REST API directly so that
+ * this module is not tied to a specific node-appwrite SDK version.
+ *
+ * The raw APPWRITE_API_KEY is NEVER sent to the browser.
+ * Only short-lived secrets (TTL: 15 min) are returned to clients.
  *
  * See ARCHITECTURE.md §7 for bucket layout and permission model.
  */
-import { Client, Storage } from "node-appwrite";
+import { Client, Storage, InputFile } from "node-appwrite";
 
 const WISHES_BUCKET_ID =
   process.env.NEXT_PUBLIC_APPWRITE_WISHES_BUCKET_ID ?? "";
 const GALLERY_BUCKET_ID =
   process.env.NEXT_PUBLIC_APPWRITE_GALLERY_BUCKET_ID ?? "";
 
-/** Short-lived token TTL in seconds (15 minutes). */
-const TOKEN_TTL_SECONDS = 900;
+/** Short-lived token TTL — 15 minutes in milliseconds. */
+const TOKEN_TTL_MS = 15 * 60 * 1000;
 
-/** Creates an Appwrite client with the server-side API key. */
+/** ISO 8601 expiry string for token creation. */
+function expireISO(): string {
+  return new Date(Date.now() + TOKEN_TTL_MS).toISOString();
+}
+
+/** Appwrite REST API base URL (includes /v1). */
+function apiBase(): string {
+  return process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ?? "";
+}
+
+/** Common headers for Appwrite REST calls using the server API key. */
+function serverHeaders(): Record<string, string> {
+  return {
+    "Content-Type": "application/json",
+    "X-Appwrite-Project": process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ?? "",
+    "X-Appwrite-Key": process.env.APPWRITE_API_KEY ?? "",
+  };
+}
+
+/** Creates an Appwrite client with the server-side API key (for SDK methods). */
 function getServerClient(): Client {
   return new Client()
-    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ?? "")
+    .setEndpoint(apiBase())
     .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ?? "")
     .setKey(process.env.APPWRITE_API_KEY ?? "");
 }
 
 /**
- * Generates a short-lived upload token for the wishes bucket.
- * Only call from Vercel API routes — never from client components.
+ * Creates a short-lived file token via the Appwrite REST API.
  *
- * @returns A short-lived Appwrite token string.
+ * Uses fetch instead of the SDK so this works regardless of node-appwrite
+ * version (createFileToken was added after v14.0.0).
+ *
+ * @param bucketId - Appwrite bucket ID.
+ * @param fileId   - Appwrite file ID for an existing file.
+ * @returns A short-lived secret token string.
  */
-export async function getWishUploadToken(): Promise<string> {
+async function createFileToken(
+  bucketId: string,
+  fileId: string
+): Promise<string> {
+  const url = `${apiBase()}/storage/buckets/${encodeURIComponent(bucketId)}/files/${encodeURIComponent(fileId)}/tokens`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: serverHeaders(),
+    body: JSON.stringify({ expire: expireISO() }),
+  });
+
+  if (!res.ok) {
+    throw new Error(
+      `Appwrite token creation failed: ${res.status} ${res.statusText}`
+    );
+  }
+
+  const data = (await res.json()) as { secret: string };
+  return data.secret;
+}
+
+// ─── Public API ──────────────────────────────────────────────────────────────
+
+/**
+ * Uploads a file buffer to the wishes bucket (server-side proxy).
+ *
+ * Guests do NOT upload directly to Appwrite — they POST multipart/form-data
+ * to /api/wishes/upload which calls this function after RBAC verification.
+ * This keeps the Appwrite API key strictly server-side.
+ *
+ * @param buffer   - File content as a Node.js Buffer.
+ * @param filename - Original filename (used for MIME detection by Appwrite).
+ * @returns The Appwrite file ID of the created file.
+ */
+export async function uploadWishFile(
+  buffer: Buffer,
+  filename: string
+): Promise<string> {
   const storage = new Storage(getServerClient());
-  const token = await storage.createFileToken(
+  const inputFile = InputFile.fromBuffer(buffer, filename);
+  const result = await storage.createFile(
     WISHES_BUCKET_ID,
     "unique()",
-    TOKEN_TTL_SECONDS
+    inputFile
   );
-  return token.secret;
+  return result.$id;
+}
+
+/**
+ * Uploads a file buffer to the personal gallery bucket (organizer only).
+ *
+ * @param buffer   - File content as a Node.js Buffer.
+ * @param filename - Original filename.
+ * @returns The Appwrite file ID of the created file.
+ */
+export async function uploadGalleryFile(
+  buffer: Buffer,
+  filename: string
+): Promise<string> {
+  const storage = new Storage(getServerClient());
+  const inputFile = InputFile.fromBuffer(buffer, filename);
+  const result = await storage.createFile(
+    GALLERY_BUCKET_ID,
+    "unique()",
+    inputFile
+  );
+  return result.$id;
+}
+
+/**
+ * Generates a short-lived view token for a specific file in the wishes bucket.
+ * Returned to authenticated roles for displaying wish media after reveal.
+ *
+ * @param fileId - Appwrite file ID.
+ * @returns A short-lived Appwrite secret token.
+ */
+export async function getWishFileToken(fileId: string): Promise<string> {
+  return createFileToken(WISHES_BUCKET_ID, fileId);
 }
 
 /**
  * Generates a short-lived view token for a specific file in the gallery bucket.
  * Must only be issued to the birthday_person role — enforced by the caller.
  *
- * @param fileId - Appwrite file ID to issue a token for.
- * @returns A short-lived Appwrite token string.
+ * @param fileId - Appwrite file ID.
+ * @returns A short-lived Appwrite secret token.
  */
 export async function getGalleryViewToken(fileId: string): Promise<string> {
-  const storage = new Storage(getServerClient());
-  const token = await storage.createFileToken(
-    GALLERY_BUCKET_ID,
-    fileId,
-    TOKEN_TTL_SECONDS
-  );
-  return token.secret;
+  return createFileToken(GALLERY_BUCKET_ID, fileId);
 }
 
 /**
  * Deletes a file from the wishes bucket.
- * Called when a guest deletes their wish (ownership verified by caller).
+ * Ownership verification is the caller's responsibility (API route layer).
  *
  * @param fileId - Appwrite file ID to delete.
  */
