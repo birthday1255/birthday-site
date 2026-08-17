@@ -30,8 +30,11 @@ function apiBase(): string {
   return process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ?? "";
 }
 
-/** Common headers for Appwrite REST calls using the server API key. */
-function serverHeaders(): Record<string, string> {
+/**
+ * Headers for JSON-body Appwrite REST calls (token creation, etc.).
+ * Includes Content-Type: application/json.
+ */
+function jsonHeaders(): Record<string, string> {
   return {
     "Content-Type": "application/json",
     "X-Appwrite-Project": process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ?? "",
@@ -39,7 +42,22 @@ function serverHeaders(): Record<string, string> {
   };
 }
 
-/** Creates an Appwrite client with the server-side API key (for SDK methods). */
+/**
+ * Headers for multipart/form-data Appwrite REST calls (file uploads).
+ *
+ * Content-Type must NOT be set here — fetch automatically sets
+ * `multipart/form-data; boundary=...` when the body is FormData.
+ * Manually setting Content-Type strips the boundary and causes
+ * Appwrite to return 400 Bad Request.
+ */
+function multipartHeaders(): Record<string, string> {
+  return {
+    "X-Appwrite-Project": process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ?? "",
+    "X-Appwrite-Key": process.env.APPWRITE_API_KEY ?? "",
+  };
+}
+
+/** Creates an Appwrite server client using the server-side API key. */
 function getServerClient(): Client {
   return new Client()
     .setEndpoint(apiBase())
@@ -65,7 +83,7 @@ async function createFileToken(
 
   const res = await fetch(url, {
     method: "POST",
-    headers: serverHeaders(),
+    headers: jsonHeaders(),
     body: JSON.stringify({ expire: expireISO() }),
   });
 
@@ -82,7 +100,7 @@ async function createFileToken(
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
- * Generates a short-lived view token for a specific file in the wishes bucket.
+ * Generates a short-lived view token for a file in the wishes bucket.
  * Returned to authenticated roles for displaying wish media after reveal.
  *
  * @param fileId - Appwrite file ID.
@@ -93,7 +111,7 @@ export async function getWishFileToken(fileId: string): Promise<string> {
 }
 
 /**
- * Generates a short-lived view token for a specific file in the gallery bucket.
+ * Generates a short-lived view token for a file in the gallery bucket.
  * Must only be issued to the birthday_person role — enforced by the caller.
  *
  * @param fileId - Appwrite file ID.
@@ -117,11 +135,15 @@ export async function deleteWishFile(fileId: string): Promise<void> {
 /**
  * Uploads a media file to the wishes bucket via the Appwrite REST API.
  *
- * @param fileId - Unique Appwrite file ID (server-generated).
- * @param buffer - Raw file bytes.
- * @param fileName - Original filename for metadata.
+ * Root cause of previous 400 Bad Request: `Content-Type: application/json`
+ * was being sent alongside a FormData body, which corrupted the multipart
+ * boundary. Fixed by using `multipartHeaders()` which omits Content-Type.
+ *
+ * @param fileId   - Unique Appwrite file ID (server-generated UUID).
+ * @param buffer   - Raw file bytes.
+ * @param fileName - Original filename for Appwrite metadata.
  * @param mimeType - MIME type of the uploaded file.
- * @returns The Appwrite file ID stored in Firestore wish metadata.
+ * @returns The Appwrite file ID to store in Firestore wish metadata.
  */
 export async function uploadWishFile(
   fileId: string,
@@ -138,15 +160,18 @@ export async function uploadWishFile(
   );
 
   const url = `${apiBase()}/storage/buckets/${encodeURIComponent(WISHES_BUCKET_ID)}/files`;
+
+  // multipartHeaders() omits Content-Type — fetch sets the boundary itself.
   const res = await fetch(url, {
     method: "POST",
-    headers: serverHeaders(),
+    headers: multipartHeaders(),
     body: formData,
   });
 
   if (!res.ok) {
+    const errorText = await res.text();
     throw new Error(
-      `Appwrite upload failed: ${res.status} ${res.statusText}`
+      `Appwrite upload failed: ${res.status} ${res.statusText} — ${errorText}`
     );
   }
 
