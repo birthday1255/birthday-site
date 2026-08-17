@@ -11,6 +11,7 @@ import { StatsCard } from "@/components/organizer/StatsCard";
 import { VisitorsTodayList } from "@/components/organizer/VisitorsTodayList";
 import { ShareLink } from "@/components/organizer/ShareLink";
 import { RevealPanel } from "@/components/organizer/RevealPanel";
+import { WishesList } from "@/components/organizer/WishesList";
 import { SignOutButton } from "@/components/ui/SignOutButton";
 
 interface DashboardStats {
@@ -156,6 +157,23 @@ export default function OrganizerDashboardPage() {
             Toggle the birthday reveal or schedule it for a specific date and time.
           </p>
           <RevealPanel />
+        </section>
+
+        {/* ── Wishes Received ── */}
+        <section
+          aria-label="Wishes received"
+          className="bg-neutral-900 border border-neutral-800 rounded-xl p-6"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-semibold text-white">Wishes Received</h2>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                All submitted birthday wishes — organizer preview.
+              </p>
+            </div>
+            <span className="text-lg">💌</span>
+          </div>
+          <WishesList refreshTrigger={refreshTrigger} />
         </section>
       </div>
     </main>
