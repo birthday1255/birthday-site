@@ -24,7 +24,7 @@ const ALLOWED_TYPES = [
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    await requireRole(request, ["guest"]);
+    await requireRole(request, ["guest", "organizer", "birthday_person"]);
 
     const formData = await request.formData();
     const file = formData.get("file");

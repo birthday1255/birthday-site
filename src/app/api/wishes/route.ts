@@ -21,7 +21,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const ctx = await requireRole(request, ["guest"]);
+    const ctx = await requireRole(request, ["guest", "organizer", "birthday_person"]);
 
     const profile = await getUserProfile(ctx.uid);
     const body = (await request.json()) as {
