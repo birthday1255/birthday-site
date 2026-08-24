@@ -28,10 +28,14 @@ export interface AuthContext {
  */
 function extractBearerToken(request: NextRequest): string | null {
   const authHeader = request.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return null;
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.slice(7);
   }
-  return authHeader.slice(7);
+  const queryToken = request.nextUrl.searchParams.get("token");
+  if (queryToken) {
+    return queryToken;
+  }
+  return null;
 }
 
 /**

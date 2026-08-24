@@ -5,6 +5,7 @@
  * Used on the birthday person experience page after reveal.
  */
 import type { Wish } from "@/types/wish";
+import { WishMediaDisplay } from "@/components/ui/WishMediaDisplay";
 
 interface WishCardProps {
   wish: Wish;
@@ -12,7 +13,7 @@ interface WishCardProps {
 }
 
 /**
- * Renders a single wish card with author, timestamp, content, and media indicator.
+ * Renders a single wish card with author, timestamp, content, and attached media.
  * Animation delay is based on index for a staggered entrance effect.
  */
 export function WishCard({ wish, index }: WishCardProps) {
@@ -63,13 +64,8 @@ export function WishCard({ wish, index }: WishCardProps) {
         {wish.content}
       </p>
 
-      {/* Media badge */}
-      {wish.mediaUrls?.length > 0 && (
-        <div className="flex items-center gap-1.5 text-xs text-neutral-400">
-          <span>📎</span>
-          <span>{wish.mediaUrls.length} media file(s) attached</span>
-        </div>
-      )}
+      {/* Attached Media Display */}
+      <WishMediaDisplay mediaUrls={wish.mediaUrls} />
     </article>
   );
 }

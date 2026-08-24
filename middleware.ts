@@ -22,10 +22,11 @@ export function middleware(request: NextRequest): NextResponse {
   const authHeader = request.headers.get("Authorization");
   const bearerToken =
     authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  const queryToken = request.nextUrl.searchParams.get("token");
 
   // Reject if no token source is present.
   // The token itself is verified inside each API route via Firebase Admin SDK.
-  if (!sessionCookie && !bearerToken) {
+  if (!sessionCookie && !bearerToken && !queryToken) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

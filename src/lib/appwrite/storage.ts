@@ -178,3 +178,52 @@ export async function uploadWishFile(
   const data = (await res.json()) as { $id: string };
   return data.$id;
 }
+
+/**
+ * Gets file metadata from the wishes bucket via Appwrite REST API.
+ *
+ * @param fileId - Appwrite file ID.
+ */
+export async function getWishFileInfo(fileId: string): Promise<{
+  mimeType: string;
+  name: string;
+  sizeOriginal: number;
+}> {
+  const url = `${apiBase()}/storage/buckets/${encodeURIComponent(WISHES_BUCKET_ID)}/files/${encodeURIComponent(fileId)}`;
+  const res = await fetch(url, {
+    headers: multipartHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error(
+      `Appwrite file info failed: ${res.status} ${res.statusText}`
+    );
+  }
+
+  return (await res.json()) as {
+    mimeType: string;
+    name: string;
+    sizeOriginal: number;
+  };
+}
+
+/**
+ * Downloads/streams a file from the wishes bucket via Appwrite REST API.
+ *
+ * @param fileId - Appwrite file ID.
+ */
+export async function getWishFileStream(fileId: string): Promise<Response> {
+  const url = `${apiBase()}/storage/buckets/${encodeURIComponent(WISHES_BUCKET_ID)}/files/${encodeURIComponent(fileId)}/view`;
+  const res = await fetch(url, {
+    headers: multipartHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error(
+      `Appwrite file stream failed: ${res.status} ${res.statusText}`
+    );
+  }
+
+  return res;
+}
+

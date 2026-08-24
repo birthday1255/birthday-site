@@ -10,6 +10,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import type { Wish } from "@/types/wish";
+import { WishMediaDisplay } from "@/components/ui/WishMediaDisplay";
 
 interface WishesListProps {
   refreshTrigger?: number;
@@ -94,13 +95,8 @@ export function WishesList({ refreshTrigger = 0 }: WishesListProps) {
             {wish.content}
           </p>
 
-          {/* Media indicator */}
-          {wish.mediaUrls?.length > 0 && (
-            <p className="text-xs text-neutral-500 flex items-center gap-1">
-              <span>📎</span>
-              <span>{wish.mediaUrls.length} media file(s) attached</span>
-            </p>
-          )}
+          {/* Attached Media Display */}
+          <WishMediaDisplay mediaUrls={wish.mediaUrls} />
         </div>
       ))}
     </div>
