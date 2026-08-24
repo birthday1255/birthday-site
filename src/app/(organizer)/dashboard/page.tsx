@@ -13,6 +13,7 @@ import { ShareLink } from "@/components/organizer/ShareLink";
 import { RevealPanel } from "@/components/organizer/RevealPanel";
 import { WishesList } from "@/components/organizer/WishesList";
 import { SignOutButton } from "@/components/ui/SignOutButton";
+import Link from "next/link";
 
 interface DashboardStats {
   visitorsToday: number;
@@ -219,6 +220,21 @@ export default function OrganizerDashboardPage() {
         >
           <RevealPanel />
         </Section>
+
+        {/* ── Personal Gallery link ── */}
+        <Link href="/gallery" className="block">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-6
+                          hover:border-violet-700/50 hover:bg-neutral-800/60 transition-all duration-200
+                          flex items-center justify-between group">
+            <div>
+              <h2 className="text-sm font-semibold text-white">Personal Gallery</h2>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Upload photos &amp; videos for the birthday person to see after reveal
+              </p>
+            </div>
+            <span className="text-2xl group-hover:scale-110 transition-transform">📸</span>
+          </div>
+        </Link>
 
         {/* ── Two-col: visitors + wishes ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

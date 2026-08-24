@@ -11,6 +11,8 @@ export type ActivityAction =
   | "wish.edited"
   | "wish.deleted"
   | "gallery.viewed"
+  | "gallery.uploaded"
+  | "gallery.deleted"
   | "reveal.triggered"
   | "invite.created"
   | "invite.revoked"

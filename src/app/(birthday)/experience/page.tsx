@@ -19,6 +19,7 @@ import { useRevealStatus } from "@/hooks/useRevealStatus";
 import { CountdownTimer } from "@/components/birthday/CountdownTimer";
 import { WishCard } from "@/components/birthday/WishCard";
 import { Confetti } from "@/components/birthday/Confetti";
+import { GallerySection } from "@/components/birthday/GallerySection";
 import { SignOutButton } from "@/components/ui/SignOutButton";
 import type { Wish } from "@/types/wish";
 
@@ -163,7 +164,7 @@ function RevealedView({ wishes, wishesLoading, userName, showConfetti }: Reveale
       </div>
 
       {/* Wishes grid */}
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 pb-20 pt-4">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 pb-10 pt-4">
         {wishesLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -177,12 +178,18 @@ function RevealedView({ wishes, wishesLoading, userName, showConfetti }: Reveale
           </div>
         ) : (
           <div className="space-y-4">
+            <p className="text-xs text-neutral-600 text-center mb-6 uppercase tracking-wider">
+              {wishes.length} {wishes.length === 1 ? "wish" : "wishes"} from people who care
+            </p>
             {wishes.map((wish, i) => (
               <WishCard key={wish.id} wish={wish} index={i} />
             ))}
           </div>
         )}
       </div>
+
+      {/* Personal gallery — shown after wishes */}
+      <GallerySection isRevealed={true} />
     </div>
   );
 }
