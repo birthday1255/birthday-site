@@ -47,3 +47,103 @@ body {
   outline-offset: 3px;
   border-radius: var(--radius-sm);
 }
+
+/* ─── Custom Animations ───────────────────────────────────────────── */
+
+/* Floating particles on landing page */
+@keyframes float-up {
+  0%   { transform: translateY(0) scale(1);   opacity: 0.8; }
+  100% { transform: translateY(-110vh) scale(0.4); opacity: 0; }
+}
+
+/* Slow ambient glow pulse */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50%       { opacity: 0.30; transform: scale(1.08); }
+}
+
+/* Fade + slide in from bottom for wish cards */
+@keyframes fade-slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Gentle infinite float for the big cake emoji */
+@keyframes float-cake {
+  0%, 100% { transform: translateY(0px) rotate(-2deg); }
+  50%       { transform: translateY(-12px) rotate(2deg); }
+}
+
+/* Shimmer for skeleton loaders */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Spin-in for the reveal celebration */
+@keyframes spin-in {
+  from { opacity: 0; transform: scale(0.5) rotate(-15deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* ─── Utility classes ─────────────────────────────────────────────── */
+
+.animate-float-cake {
+  animation: float-cake 4s ease-in-out infinite;
+}
+
+.animate-fade-slide-up {
+  animation: fade-slide-up 0.5s ease-out both;
+}
+
+.animate-spin-in {
+  animation: spin-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 6s ease-in-out infinite;
+}
+
+/* Skeleton loader shimmer */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #1c1c1c 25%,
+    #2a2a2a 50%,
+    #1c1c1c 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #e879f9, #a78bfa, #f9a8d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Confetti particle */
+.confetti-particle {
+  position: fixed;
+  top: -10px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: float-up var(--duration, 3s) ease-out var(--delay, 0s) forwards;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 
@@ -10,11 +10,17 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Birthday 2026",
+    default: "Birthday 2026 🎂",
     template: "%s — Birthday 2026",
   },
-  description: "Sign in and send a birthday wish.",
+  description: "A private birthday celebration. Sign in to leave a wish.",
   robots: { index: false, follow: false },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0a0a0a",
 };
 
 interface RootLayoutProps {
@@ -24,7 +30,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={inter.variable}>
-      <body>{children}</body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }
