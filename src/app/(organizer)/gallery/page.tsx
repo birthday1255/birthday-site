@@ -1,16 +1,16 @@
 "use client";
 
 /**
- * Organizer Gallery Upload Page — Sprint 8.
+ * Organizer Gallery Upload Page — Sprint 9 Polish.
  *
  * Allows the organizer to upload personal photos and videos
  * that the birthday person sees after the reveal.
  *
  * Features:
- *   - Drag-and-drop upload zone
+ *   - Drag-and-drop upload zone with animated border
  *   - Multi-file upload with progress bars
  *   - Optional caption per photo
- *   - Grid preview of uploaded items
+ *   - Grid preview with hover effects
  *   - Delete items
  */
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -34,20 +34,26 @@ function GalleryGridItem({
   item,
   idToken,
   onDelete,
+  index,
 }: {
   item: GalleryItem;
   idToken: string;
   onDelete: (id: string, fileId: string) => void;
+  index: number;
 }) {
   const isVideo = item.mimeType.startsWith("video/");
   const src = `/api/gallery/media/${encodeURIComponent(item.fileId)}?token=${encodeURIComponent(idToken)}`;
 
   return (
-    <div className="group relative rounded-xl overflow-hidden bg-neutral-800 border border-neutral-700 aspect-square">
+    <div
+      className="group relative rounded-2xl overflow-hidden bg-white/[0.03] border border-white/[0.06]
+                 aspect-square card-hover-lift animate-fade-slide-up"
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
       {isVideo ? (
         <video
           src={src}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           muted
           preload="metadata"
         />
@@ -56,18 +62,20 @@ function GalleryGridItem({
         <img
           src={src}
           alt={item.caption || "Gallery photo"}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
         />
       )}
 
       {/* Overlay on hover */}
-      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent
+                      opacity-0 group-hover:opacity-100 transition-opacity duration-300
                       flex flex-col justify-between p-3">
         <button
           onClick={() => onDelete(item.id, item.fileId)}
-          className="self-end w-7 h-7 rounded-full bg-red-600/90 flex items-center justify-center
-                     text-white text-xs hover:bg-red-500 transition-colors"
+          className="self-end w-8 h-8 rounded-full bg-red-600/80 backdrop-blur-sm
+                     flex items-center justify-center text-white text-xs
+                     hover:bg-red-500 transition-colors"
           aria-label="Delete photo"
         >
           ✕
@@ -81,8 +89,9 @@ function GalleryGridItem({
 
       {/* Video badge */}
       {isVideo && (
-        <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-black/70 rounded text-xs text-white">
-          ▶ Video
+        <div className="absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-sm
+                        rounded-full text-xs text-white flex items-center gap-1">
+          <span>▶</span> Video
         </div>
       )}
     </div>
@@ -222,26 +231,26 @@ export default function OrganizerGalleryPage() {
   );
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen aurora-bg relative">
       {/* Ambient glow */}
-      <div className="fixed top-0 inset-x-0 h-64 pointer-events-none z-0">
-        <div className="absolute top-[-40px] left-1/3 w-72 h-72 rounded-full bg-violet-700/10 blur-[100px]" />
-        <div className="absolute top-[-40px] right-1/3 w-56 h-56 rounded-full bg-pink-700/10 blur-[80px]" />
+      <div className="fixed top-0 inset-x-0 h-80 pointer-events-none z-0">
+        <div className="absolute top-[-50px] left-1/3 w-[400px] h-[400px] rounded-full bg-violet-700/8 blur-[120px] animate-glow-pulse" />
+        <div className="absolute top-[-30px] right-1/3 w-[300px] h-[300px] rounded-full bg-fuchsia-700/6 blur-[100px] animate-glow-pulse" style={{ animationDelay: "3s" }} />
       </div>
 
       {/* Header */}
-      <header className="relative z-10 sticky top-0 border-b border-neutral-800/80 bg-neutral-950/80 backdrop-blur-xl">
+      <header className="relative z-10 sticky top-0 border-b border-white/[0.06] bg-black/30 backdrop-blur-2xl">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="text-neutral-400 hover:text-white transition-colors text-sm flex items-center gap-1.5"
+              className="text-neutral-400 hover:text-white transition-colors text-sm flex items-center gap-1.5 font-heading"
             >
               ← Dashboard
             </Link>
             <span className="text-neutral-700">|</span>
             <div>
-              <p className="text-sm font-semibold text-white leading-none">
+              <p className="text-sm font-semibold text-white leading-none font-heading">
                 Personal Gallery
               </p>
               <p className="text-xs text-neutral-500 mt-0.5">
@@ -249,7 +258,7 @@ export default function OrganizerGalleryPage() {
               </p>
             </div>
           </div>
-          <span className="text-xs px-2.5 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/15 text-violet-300 font-medium font-heading">
             🔑 Organizer only
           </span>
         </div>
@@ -258,16 +267,18 @@ export default function OrganizerGalleryPage() {
       <main className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
 
         {/* Page title */}
-        <div>
-          <h1 className="text-2xl font-bold text-white">Upload Photos & Videos</h1>
+        <div className="animate-fade-slide-up">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white font-heading">
+            Upload Photos & Videos
+          </h1>
           <p className="text-neutral-500 text-sm mt-1">
             These will appear in a private gallery for the birthday person after the reveal.
           </p>
         </div>
 
         {/* Caption input */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+        <div className="space-y-2 animate-fade-slide-up" style={{ animationDelay: "0.05s" }}>
+          <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider font-heading">
             Caption (optional — applies to next upload)
           </label>
           <input
@@ -276,9 +287,11 @@ export default function OrganizerGalleryPage() {
             onChange={(e) => setCaption(e.target.value)}
             placeholder="Add a memory or note…"
             maxLength={200}
-            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3
+            className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl px-5 py-3.5
                        text-sm text-white placeholder-neutral-600
-                       focus:outline-none focus:border-violet-500/60 transition-colors"
+                       focus:outline-none focus:border-violet-500/40
+                       focus:shadow-[0_0_15px_-5px_rgba(139,92,246,0.2)]
+                       transition-all duration-300"
           />
         </div>
 
@@ -288,12 +301,13 @@ export default function OrganizerGalleryPage() {
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
           onClick={() => fileInputRef.current?.click()}
-          className={`relative cursor-pointer border-2 border-dashed rounded-2xl p-12 text-center
-                      transition-all duration-200 select-none
+          className={`relative cursor-pointer border-2 border-dashed rounded-3xl p-14 text-center
+                      transition-all duration-300 select-none animate-fade-slide-up
                       ${isDragging
-                        ? "border-violet-500 bg-violet-500/10 scale-[1.01]"
-                        : "border-neutral-700 bg-neutral-900/40 hover:border-neutral-500 hover:bg-neutral-800/30"
+                        ? "border-violet-500/60 bg-violet-500/8 scale-[1.01] shadow-[0_0_40px_-10px_rgba(139,92,246,0.2)]"
+                        : "border-white/[0.08] bg-white/[0.02] hover:border-violet-500/25 hover:bg-violet-500/[0.03]"
                       }`}
+          style={{ animationDelay: "0.1s" }}
         >
           <input
             ref={fileInputRef}
@@ -303,13 +317,13 @@ export default function OrganizerGalleryPage() {
             className="hidden"
             onChange={handleFileInput}
           />
-          <div className="text-5xl mb-4 select-none">
+          <div className="text-5xl mb-5 select-none">
             {isDragging ? "📥" : "🖼️"}
           </div>
-          <p className="text-white font-semibold text-lg">
+          <p className="text-white font-semibold text-lg font-heading">
             {isDragging ? "Drop to upload" : "Drop photos & videos here"}
           </p>
-          <p className="text-neutral-500 text-sm mt-1">
+          <p className="text-neutral-500 text-sm mt-2">
             or click to browse · JPEG, PNG, WebP, GIF, MP4, MOV · Max 50 MB each
           </p>
         </div>
@@ -317,25 +331,26 @@ export default function OrganizerGalleryPage() {
         {/* Upload progress */}
         {uploading.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider font-heading">
               Uploading
             </p>
             {uploading.map((u) => (
               <div
                 key={u.id}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm
+                className={`flex items-center gap-3 px-5 py-4 rounded-2xl border text-sm
+                            transition-colors duration-200 animate-fade-slide-up
                   ${u.progress === "error"
-                    ? "bg-red-950/30 border-red-800/50"
+                    ? "bg-red-950/20 border-red-800/30"
                     : u.progress === "done"
-                    ? "bg-green-950/30 border-green-800/50"
-                    : "bg-neutral-900 border-neutral-800"
+                    ? "bg-emerald-950/20 border-emerald-800/30"
+                    : "bg-white/[0.03] border-white/[0.06]"
                   }`}
               >
                 {u.progress === "uploading" && (
-                  <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0" />
+                  <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0" />
                 )}
                 {u.progress === "done" && (
-                  <span className="text-green-400 shrink-0">✓</span>
+                  <span className="text-emerald-400 shrink-0 animate-bounce-in">✓</span>
                 )}
                 {u.progress === "error" && (
                   <span className="text-red-400 shrink-0">✕</span>
@@ -346,7 +361,7 @@ export default function OrganizerGalleryPage() {
                     <p className="text-xs text-red-400 mt-0.5">{u.error}</p>
                   )}
                 </div>
-                <span className="text-xs text-neutral-500 shrink-0">
+                <span className="text-xs text-neutral-500 shrink-0 tabular-nums">
                   {(u.file.size / (1024 * 1024)).toFixed(1)} MB
                 </span>
               </div>
@@ -357,16 +372,17 @@ export default function OrganizerGalleryPage() {
         {/* Gallery grid */}
         {items.length > 0 && idToken && (
           <div className="space-y-4">
-            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider font-heading">
               Gallery — {items.length} item{items.length !== 1 ? "s" : ""}
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {items.map((item) => (
+              {items.map((item, i) => (
                 <GalleryGridItem
                   key={item.id}
                   item={item}
                   idToken={idToken}
                   onDelete={handleDelete}
+                  index={i}
                 />
               ))}
             </div>
@@ -374,8 +390,11 @@ export default function OrganizerGalleryPage() {
         )}
 
         {items.length === 0 && uploading.length === 0 && (
-          <div className="text-center py-10 text-neutral-600 text-sm">
-            No photos yet — upload some memories above!
+          <div className="text-center py-14 space-y-3">
+            <span className="text-4xl block">📷</span>
+            <p className="text-neutral-500 text-sm">
+              No photos yet — upload some memories above!
+            </p>
           </div>
         )}
       </main>

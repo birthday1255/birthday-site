@@ -4,19 +4,23 @@
 
 /* ─── Design Tokens ──────────────────────────────────────────────── */
 :root {
-  --color-bg-primary: #0a0a0a;
-  --color-bg-surface: #141414;
-  --color-bg-elevated: #1c1c1c;
-  --color-accent: #e879f9;
-  --color-accent-dim: #a21caf;
+  --color-bg-primary: #050508;
+  --color-bg-surface: #0c0c14;
+  --color-bg-elevated: #141420;
+  --color-accent: #c084fc;
+  --color-accent-bright: #e879f9;
+  --color-accent-dim: #7c3aed;
   --color-text-primary: #fafafa;
   --color-text-secondary: #a3a3a3;
   --color-text-muted: #525252;
-  --color-border: #262626;
-  --color-border-subtle: #1a1a1a;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --color-border: #1e1e2e;
+  --color-border-subtle: #151520;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --font-heading: var(--font-outfit), system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
 }
 
 /* ─── Reset ───────────────────────────────────────────────────────── */
@@ -35,7 +39,7 @@ html {
 body {
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100dvh;
@@ -48,30 +52,33 @@ body {
   border-radius: var(--radius-sm);
 }
 
-/* ─── Custom Animations ───────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════
+   KEYFRAME ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════ */
 
-/* Floating particles on landing page */
+/* Floating particles — upward drift with fade */
 @keyframes float-up {
-  0%   { transform: translateY(0) scale(1);   opacity: 0.8; }
-  100% { transform: translateY(-110vh) scale(0.4); opacity: 0; }
+  0%   { transform: translateY(0) scale(1) rotate(0deg);   opacity: 0.85; }
+  50%  { transform: translateY(-55vh) scale(0.7) rotate(180deg); opacity: 0.5; }
+  100% { transform: translateY(-115vh) scale(0.3) rotate(360deg); opacity: 0; }
 }
 
 /* Slow ambient glow pulse */
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.15; transform: scale(1); }
-  50%       { opacity: 0.30; transform: scale(1.08); }
+  0%, 100% { opacity: 0.12; transform: scale(1); }
+  50%      { opacity: 0.28; transform: scale(1.1); }
 }
 
-/* Fade + slide in from bottom for wish cards */
+/* Fade + slide in from bottom */
 @keyframes fade-slide-up {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(32px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Gentle infinite float for the big cake emoji */
+/* Gentle infinite float for emojis */
 @keyframes float-cake {
-  0%, 100% { transform: translateY(0px) rotate(-2deg); }
-  50%       { transform: translateY(-12px) rotate(2deg); }
+  0%, 100% { transform: translateY(0px) rotate(-3deg) scale(1); }
+  50%      { transform: translateY(-16px) rotate(3deg) scale(1.05); }
 }
 
 /* Shimmer for skeleton loaders */
@@ -82,68 +89,388 @@ body {
 
 /* Spin-in for the reveal celebration */
 @keyframes spin-in {
-  from { opacity: 0; transform: scale(0.5) rotate(-15deg); }
+  from { opacity: 0; transform: scale(0.3) rotate(-30deg); }
   to   { opacity: 1; transform: scale(1) rotate(0deg); }
 }
 
-/* ─── Utility classes ─────────────────────────────────────────────── */
+/* Aurora — morphing gradient background */
+@keyframes aurora {
+  0%   { background-position: 0% 50%; }
+  25%  { background-position: 50% 100%; }
+  50%  { background-position: 100% 50%; }
+  75%  { background-position: 50% 0%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Gradient border rotation */
+@keyframes gradient-border-spin {
+  0%   { --angle: 0deg; }
+  100% { --angle: 360deg; }
+}
+
+/* Sparkle twinkle */
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+  50%      { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+/* Pulse ring (status indicators) */
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  70%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Subtle text shimmer sweep */
+@keyframes text-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Flip digit for countdown */
+@keyframes flip-digit {
+  0%   { transform: rotateX(0deg); opacity: 1; }
+  50%  { transform: rotateX(-90deg); opacity: 0; }
+  51%  { transform: rotateX(90deg); opacity: 0; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+
+/* Sway — lateral drift */
+@keyframes sway {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(12px); }
+  75%      { transform: translateX(-12px); }
+}
+
+/* Entrance — scale + fade */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Bounce-in for success states */
+@keyframes bounce-in {
+  0%   { transform: scale(0); opacity: 0; }
+  50%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Wave — for emoji hand wave */
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(20deg); }
+  50%      { transform: rotate(-10deg); }
+  75%      { transform: rotate(15deg); }
+}
+
+/* Gradient sweep on buttons */
+@keyframes btn-shine {
+  0%   { left: -100%; }
+  100% { left: 200%; }
+}
+
+/* Confetti with horizontal drift */
+@keyframes confetti-fall {
+  0%   { transform: translateY(0) rotate(0deg) translateX(0); opacity: 1; }
+  25%  { transform: translateY(25vh) rotate(90deg) translateX(20px); opacity: 0.9; }
+  50%  { transform: translateY(50vh) rotate(180deg) translateX(-15px); opacity: 0.7; }
+  75%  { transform: translateY(75vh) rotate(270deg) translateX(10px); opacity: 0.4; }
+  100% { transform: translateY(110vh) rotate(360deg) translateX(-5px); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   UTILITY CLASSES
+   ═══════════════════════════════════════════════════════════════════ */
 
 .animate-float-cake {
   animation: float-cake 4s ease-in-out infinite;
 }
 
 .animate-fade-slide-up {
-  animation: fade-slide-up 0.5s ease-out both;
+  animation: fade-slide-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-spin-in {
-  animation: spin-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: spin-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .animate-glow-pulse {
   animation: glow-pulse 6s ease-in-out infinite;
 }
 
-/* Skeleton loader shimmer */
+.animate-scale-in {
+  animation: scale-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-wave {
+  animation: wave 1.5s ease-in-out 2;
+  transform-origin: 70% 70%;
+  display: inline-block;
+}
+
+/* ─── Aurora background ─────────────────────────────────────────── */
+.aurora-bg {
+  background: linear-gradient(
+    -45deg,
+    #050508,
+    #0d0520,
+    #15062e,
+    #1a0535,
+    #0d0520,
+    #0a0818,
+    #120828,
+    #050508
+  );
+  background-size: 400% 400%;
+  animation: aurora 20s ease-in-out infinite;
+}
+
+.aurora-bg-vivid {
+  background: linear-gradient(
+    -45deg,
+    #0a0515,
+    #1a0838,
+    #2d0a52,
+    #3b0764,
+    #4a044e,
+    #2d0a52,
+    #1a0838,
+    #0a0515
+  );
+  background-size: 400% 400%;
+  animation: aurora 15s ease-in-out infinite;
+}
+
+/* ─── Skeleton loader shimmer ───────────────────────────────────── */
 .skeleton {
   background: linear-gradient(
     90deg,
-    #1c1c1c 25%,
-    #2a2a2a 50%,
-    #1c1c1c 75%
+    rgba(20, 20, 32, 0.8) 25%,
+    rgba(40, 30, 60, 0.5) 50%,
+    rgba(20, 20, 32, 0.8) 75%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.6s infinite;
+  animation: shimmer 1.8s ease-in-out infinite;
+  border-radius: var(--radius-md);
 }
 
-/* Glassmorphism card */
+/* ─── Glassmorphism card ────────────────────────────────────────── */
 .glass-card {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.03),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+    0 20px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-/* Gradient text */
+.glass-card-vivid {
+  background: rgba(139, 92, 246, 0.04);
+  backdrop-filter: blur(28px) saturate(1.3);
+  -webkit-backdrop-filter: blur(28px) saturate(1.3);
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.05),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+    0 25px 60px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* ─── Gradient text ─────────────────────────────────────────────── */
 .gradient-text {
-  background: linear-gradient(135deg, #e879f9, #a78bfa, #f9a8d4);
+  background: linear-gradient(
+    135deg,
+    #c084fc 0%,
+    #e879f9 25%,
+    #f0abfc 50%,
+    #a78bfa 75%,
+    #c084fc 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: text-shimmer 6s linear infinite;
+}
+
+.gradient-text-warm {
+  background: linear-gradient(
+    135deg,
+    #f9a8d4 0%,
+    #e879f9 30%,
+    #c084fc 60%,
+    #818cf8 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Confetti particle */
+/* ─── Glow border ───────────────────────────────────────────────── */
+.glow-border {
+  position: relative;
+  z-index: 0;
+}
+
+.glow-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.3),
+    rgba(232, 121, 249, 0.15),
+    rgba(139, 92, 246, 0.05),
+    rgba(232, 121, 249, 0.3)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.glow-border:hover::before {
+  opacity: 1;
+}
+
+/* ─── Card hover lift ───────────────────────────────────────────── */
+.card-hover-lift {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s ease;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 20px 40px -15px rgba(139, 92, 246, 0.15),
+    0 0 20px -5px rgba(139, 92, 246, 0.08);
+}
+
+/* ─── Confetti particle (redesigned) ────────────────────────────── */
 .confetti-particle {
   position: fixed;
-  top: -10px;
-  border-radius: 2px;
+  top: -16px;
   pointer-events: none;
   z-index: 9999;
-  animation: float-up var(--duration, 3s) ease-out var(--delay, 0s) forwards;
+  animation: confetti-fall var(--duration, 3s) ease-out var(--delay, 0s) forwards;
+}
+
+/* ─── Gradient button ───────────────────────────────────────────── */
+.btn-gradient {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #7c3aed, #a855f7, #c084fc);
+  border: none;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btn-gradient::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transition: none;
+}
+
+.btn-gradient:hover::before {
+  animation: btn-shine 0.6s ease forwards;
+}
+
+.btn-gradient:hover {
+  box-shadow: 0 8px 25px -5px rgba(139, 92, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-gradient:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 10px -2px rgba(139, 92, 246, 0.3);
+}
+
+.btn-gradient:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-gradient:disabled::before {
+  display: none;
+}
+
+/* ─── Sparkle decoration ────────────────────────────────────────── */
+.sparkle-container {
+  position: relative;
+}
+
+.sparkle-container::after {
+  content: "✦";
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  font-size: 10px;
+  color: #e879f9;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+/* ─── Pulse ring (for live indicators) ──────────────────────────── */
+.pulse-ring {
+  position: relative;
+}
+
+.pulse-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* ─── Section entrance animation ────────────────────────────────── */
+.section-enter {
+  animation: fade-slide-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* ─── Scrollbar ───────────────────────────────────────────────────── */
-::-webkit-scrollbar        { width: 6px; }
+::-webkit-scrollbar        { width: 5px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: #333; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #555; }
+::-webkit-scrollbar-thumb  {
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.35);
+}
+
+/* ─── Custom selection ────────────────────────────────────────────── */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: #f5f3ff;
+}
+
+/* ─── Heading font class ──────────────────────────────────────────── */
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}

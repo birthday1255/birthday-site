@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * Birthday Person Experience Page — Sprint 7 + Sprint 9 Polish.
+ * Birthday Person Experience Page — Sprint 9 Premium Polish.
  *
  * States:
- *  1. Loading  — spinner while reveal status resolves from Firestore
- *  2. Locked   — countdown to reveal_timestamp, or "waiting" message
- *  3. Revealed — confetti burst, animated wish cascade
+ *  1. Loading  — branded spinner with aurora bg
+ *  2. Locked   — countdown to reveal, sparkle particles, floating gifts
+ *  3. Revealed — confetti burst, hero gradient, wish cascade + gallery
  *
  * Real-time: Firestore onSnapshot auto-transitions Locked → Revealed
  * without any page refresh the instant the organizer hits "Reveal Now".
@@ -58,10 +58,13 @@ function useWishes(isRevealed: boolean) {
 
 function LoadingView() {
   return (
-    <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-neutral-400 text-sm animate-pulse">
+    <div className="min-h-screen aurora-bg-vivid flex items-center justify-center relative overflow-hidden">
+      {/* Ambient glow */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full bg-violet-600/15 blur-[120px] animate-glow-pulse" />
+      <div className="flex flex-col items-center gap-5 relative z-10">
+        <span className="text-5xl animate-float-cake">🎂</span>
+        <div className="w-8 h-8 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+        <p className="text-neutral-400 text-sm">
           Preparing something special…
         </p>
       </div>
@@ -77,39 +80,69 @@ interface LockedViewProps {
 function LockedView({ revealTimestamp, userName }: LockedViewProps) {
   const firstName = userName.split(" ")[0] || "";
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center px-6 text-center gap-10">
-      {/* Ambient glow */}
-      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[500px] h-[500px]
-                      rounded-full bg-violet-700/15 blur-[120px] pointer-events-none animate-glow-pulse" />
+    <div className="min-h-screen aurora-bg-vivid flex flex-col items-center justify-center px-6 text-center gap-10 relative overflow-hidden">
+      {/* Ambient glow orbs */}
+      <div className="absolute top-[-15%] left-1/2 -translate-x-1/2 w-[600px] h-[600px]
+                      rounded-full bg-violet-700/12 blur-[140px] pointer-events-none animate-glow-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px]
+                      rounded-full bg-fuchsia-700/8 blur-[100px] pointer-events-none animate-glow-pulse"
+        style={{ animationDelay: "4s" }} />
 
-      {/* Cake */}
-      <div className="text-8xl sm:text-9xl select-none animate-float-cake relative z-10">
-        🎂
+      {/* Floating sparkle particles */}
+      {Array.from({ length: 8 }).map((_, i) => (
+        <span
+          key={i}
+          className="absolute text-violet-400/40 animate-sparkle pointer-events-none"
+          style={{
+            top: `${15 + Math.random() * 70}%`,
+            left: `${10 + Math.random() * 80}%`,
+            fontSize: `${8 + Math.random() * 8}px`,
+            animationDelay: `${i * 0.5}s`,
+          }}
+        >
+          ✦
+        </span>
+      ))}
+
+      {/* Cake with sparkle halo */}
+      <div className="relative z-10 animate-scale-in">
+        <span className="text-8xl sm:text-9xl select-none inline-block animate-float-cake
+                         drop-shadow-[0_0_40px_rgba(139,92,246,0.35)]">
+          🎂
+        </span>
+        {/* Sparkles */}
+        <span className="absolute -top-2 -right-2 text-sm text-violet-400 animate-sparkle">✦</span>
+        <span className="absolute top-0 -left-3 text-xs text-fuchsia-400 animate-sparkle" style={{ animationDelay: "0.8s" }}>✧</span>
+        <span className="absolute -bottom-1 right-0 text-xs text-pink-400 animate-sparkle" style={{ animationDelay: "1.5s" }}>✦</span>
       </div>
 
-      <div className="space-y-3 max-w-sm relative z-10">
-        <h1 className="text-3xl sm:text-4xl font-bold text-white">
-          {firstName ? `Hey ${firstName}! 👋` : "Your surprise is coming!"}
+      <div className="space-y-3 max-w-sm relative z-10 animate-fade-slide-up" style={{ animationDelay: "0.2s" }}>
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-white font-heading">
+          {firstName ? (
+            <>Hey {firstName}! <span className="inline-block animate-wave">👋</span></>
+          ) : (
+            "Your surprise is coming!"
+          )}
         </h1>
         <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">
           Everyone who loves you has left a message here.
           They&apos;ll appear the moment the organizer hits reveal.
           <br />
-          <span className="text-neutral-600">No refresh needed — it&apos;s live. ✨</span>
+          <span className="text-neutral-600 text-xs">No refresh needed — it&apos;s live. ✨</span>
         </p>
       </div>
 
       {revealTimestamp && revealTimestamp > new Date() ? (
-        <div className="space-y-4 relative z-10">
-          <p className="text-xs text-neutral-500 uppercase tracking-widest">
+        <div className="space-y-5 relative z-10 animate-fade-slide-up" style={{ animationDelay: "0.4s" }}>
+          <p className="text-xs text-neutral-500 uppercase tracking-[0.2em] font-heading">
             Reveal in
           </p>
           <CountdownTimer targetDate={revealTimestamp} />
         </div>
       ) : (
-        <div className="glass-card rounded-2xl px-8 py-4 relative z-10">
+        <div className="glass-card-vivid rounded-2xl px-8 py-5 relative z-10 animate-fade-slide-up" style={{ animationDelay: "0.4s" }}>
           <p className="text-sm text-neutral-400 flex items-center gap-2">
-            <span>🔒</span> Waiting for the organizer to reveal…
+            <span className="text-base">🔒</span> Waiting for the organizer to reveal…
           </p>
         </div>
       )}
@@ -127,26 +160,27 @@ interface RevealedViewProps {
 function RevealedView({ wishes, wishesLoading, userName, showConfetti }: RevealedViewProps) {
   const firstName = userName.split(" ")[0] || "";
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen aurora-bg">
       {/* Confetti burst fires once on reveal */}
-      {showConfetti && <Confetti count={100} />}
+      {showConfetti && <Confetti count={120} />}
 
       {/* Hero header */}
       <div className="relative overflow-hidden">
-        {/* Background gradients */}
+        {/* Background gradient */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-950/80 via-neutral-950 to-pink-950/60" />
-          <div className="absolute top-0 left-1/4 w-80 h-80 bg-violet-600/20 rounded-full blur-[100px] animate-glow-pulse" />
-          <div className="absolute top-0 right-1/4 w-64 h-64 bg-pink-600/20 rounded-full blur-[80px] animate-glow-pulse"
+          <div className="absolute inset-0 aurora-bg-vivid" />
+          <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-violet-600/15 rounded-full blur-[120px] animate-glow-pulse" />
+          <div className="absolute top-0 right-1/4 w-[300px] h-[300px] bg-fuchsia-600/12 rounded-full blur-[100px] animate-glow-pulse"
             style={{ animationDelay: "3s" }}
           />
         </div>
 
-        <div className="relative z-10 max-w-3xl mx-auto px-6 py-16 sm:py-24 text-center space-y-5">
-          <div className="text-6xl sm:text-7xl select-none animate-spin-in inline-block">
+        <div className="relative z-10 max-w-3xl mx-auto px-6 py-20 sm:py-28 text-center space-y-6">
+          <div className="text-6xl sm:text-7xl select-none animate-spin-in inline-block
+                          drop-shadow-[0_0_30px_rgba(232,121,249,0.3)]">
             🎉
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold leading-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight font-heading">
             <span className="gradient-text">
               Happy Birthday{firstName ? `, ${firstName}` : ""}!
             </span>
@@ -156,29 +190,29 @@ function RevealedView({ wishes, wishesLoading, userName, showConfetti }: Reveale
             These are all for you. 💜
           </p>
           {wishes.length > 0 && !wishesLoading && (
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-neutral-500 animate-fade-slide-up" style={{ animationDelay: "0.5s" }}>
               {wishes.length} {wishes.length === 1 ? "wish" : "wishes"} waiting for you ↓
             </p>
           )}
         </div>
       </div>
 
-      {/* Wishes grid */}
+      {/* Wishes */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 pb-10 pt-4">
         {wishesLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="skeleton h-28 rounded-2xl" />
+              <div key={i} className="skeleton h-32 rounded-3xl" style={{ animationDelay: `${i * 0.1}s` }} />
             ))}
           </div>
         ) : wishes.length === 0 ? (
-          <div className="text-center py-20 text-neutral-500">
-            <p className="text-4xl mb-4">💌</p>
-            <p className="text-sm">No wishes yet — but you are loved.</p>
+          <div className="text-center py-24 space-y-4">
+            <span className="text-5xl block animate-float-cake">💌</span>
+            <p className="text-neutral-500 text-sm">No wishes yet — but you are loved.</p>
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-xs text-neutral-600 text-center mb-6 uppercase tracking-wider">
+            <p className="text-xs text-neutral-600 text-center mb-8 uppercase tracking-[0.2em] font-heading">
               {wishes.length} {wishes.length === 1 ? "wish" : "wishes"} from people who care
             </p>
             {wishes.map((wish, i) => (

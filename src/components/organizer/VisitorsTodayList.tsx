@@ -2,6 +2,7 @@
 
 /**
  * VisitorsTodayList — guests who signed in today (IST), for organizer monitoring.
+ * Sprint 9 polish: card-style rows, avatar gradient rings, staggered entrance.
  */
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -65,11 +66,12 @@ export function VisitorsTodayList({ refreshTrigger }: VisitorsTodayListProps) {
 
   if (loading) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
-            className="h-12 bg-neutral-800 rounded-lg animate-pulse"
+            className="skeleton h-16 rounded-2xl"
+            style={{ animationDelay: `${i * 0.1}s` }}
           />
         ))}
       </div>
@@ -78,59 +80,60 @@ export function VisitorsTodayList({ refreshTrigger }: VisitorsTodayListProps) {
 
   if (visitors.length === 0) {
     return (
-      <p className="text-neutral-500 text-sm text-center py-8">
-        No visitors yet today. Share the site link to get started.
-      </p>
+      <div className="text-center py-10 space-y-3">
+        <span className="text-3xl block">👀</span>
+        <p className="text-neutral-500 text-sm">
+          No visitors yet today. Share the site link to get started.
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-neutral-800">
-            <th className="text-left py-3 px-2 text-neutral-400 font-medium">
-              Name
-            </th>
-            <th className="text-left py-3 px-2 text-neutral-400 font-medium">
-              Email
-            </th>
-            <th className="text-left py-3 px-2 text-neutral-400 font-medium">
-              Visited at
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {visitors.map((visitor) => (
-            <tr
-              key={visitor.uid}
-              className="border-b border-neutral-800/50 hover:bg-neutral-800/30 transition-colors"
-            >
-              <td className="py-3 px-2">
-                <div className="flex items-center gap-2">
-                  {visitor.photoURL ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={visitor.photoURL}
-                      alt=""
-                      className="w-7 h-7 rounded-full"
-                    />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-neutral-700 flex items-center justify-center text-xs text-neutral-400">
-                      {visitor.displayName?.[0] ?? "?"}
-                    </div>
-                  )}
-                  <span className="text-neutral-200">{visitor.displayName}</span>
-                </div>
-              </td>
-              <td className="py-3 px-2 text-neutral-400">{visitor.email}</td>
-              <td className="py-3 px-2 text-neutral-500 text-xs">
-                {formatVisitTime(visitor.lastVisitedAt)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-2">
+      {visitors.map((visitor, i) => (
+        <div
+          key={visitor.uid}
+          className="flex items-center gap-3 px-4 py-3 rounded-2xl
+                     bg-white/[0.02] border border-white/[0.04]
+                     hover:bg-white/[0.04] hover:border-white/[0.08]
+                     transition-all duration-200 animate-fade-slide-up"
+          style={{ animationDelay: `${i * 60}ms` }}
+        >
+          {/* Avatar */}
+          {visitor.photoURL ? (
+            <div className="relative shrink-0">
+              <div className="w-9 h-9 rounded-full p-[2px] bg-gradient-to-br from-violet-500 to-fuchsia-500">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={visitor.photoURL}
+                  alt=""
+                  className="w-full h-full rounded-full object-cover"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600
+                            flex items-center justify-center text-xs font-bold text-white shrink-0">
+              {visitor.displayName?.[0]?.toUpperCase() ?? "?"}
+            </div>
+          )}
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-neutral-200 font-medium truncate">
+              {visitor.displayName}
+            </p>
+            <p className="text-xs text-neutral-500 truncate">{visitor.email}</p>
+          </div>
+
+          {/* Time */}
+          <span className="text-xs text-neutral-500 tabular-nums shrink-0 px-2 py-1
+                           bg-white/[0.03] rounded-lg">
+            {formatVisitTime(visitor.lastVisitedAt)}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

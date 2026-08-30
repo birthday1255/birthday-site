@@ -2,7 +2,7 @@
 
 /**
  * SignOutButton — calls Firebase signOut and redirects to the landing page.
- * Used in the organizer dashboard header.
+ * Sprint 9 polish: glassmorphism background, hover glow.
  */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,9 +26,9 @@ export function SignOutButton() {
       id="sign-out"
       onClick={() => void handleSignOut()}
       disabled={loading}
-      className="px-3 py-1.5 text-xs text-neutral-400 border border-neutral-700
-                 rounded-lg hover:bg-neutral-800 hover:text-neutral-200
-                 transition-colors disabled:opacity-50"
+      className="px-3.5 py-1.5 text-xs text-neutral-400 bg-white/[0.04] border border-white/[0.08]
+                 rounded-xl hover:bg-white/[0.08] hover:text-neutral-200 hover:border-white/[0.12]
+                 transition-all duration-200 disabled:opacity-50 font-heading"
     >
       {loading ? "Signing out…" : "Sign out"}
     </button>

@@ -3,9 +3,8 @@
 /**
  * GallerySection — shows the organizer's personal photo/video gallery
  * to the birthday person after the reveal.
- *
- * Displays a responsive masonry-style grid of all uploaded gallery items.
- * Each item is securely streamed via /api/gallery/media/[fileId].
+ * Sprint 9 polish: gradient heading, glassmorphism cards with hover effects,
+ * staggered entrances, premium lightbox.
  */
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,10 +18,12 @@ function GalleryCard({
   item,
   idToken,
   onClick,
+  index,
 }: {
   item: GalleryItem;
   idToken: string;
   onClick: () => void;
+  index: number;
 }) {
   const isVideo = item.mimeType.startsWith("video/");
   const src = `/api/gallery/media/${encodeURIComponent(item.fileId)}?token=${encodeURIComponent(idToken)}`;
@@ -30,9 +31,9 @@ function GalleryCard({
   return (
     <div
       onClick={onClick}
-      className="relative rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800
-                 cursor-pointer group hover:border-violet-700/60 transition-all duration-300
-                 hover:shadow-lg hover:shadow-violet-900/20 animate-fade-slide-up"
+      className="relative rounded-3xl overflow-hidden glass-card
+                 cursor-pointer group card-hover-lift animate-fade-slide-up"
+      style={{ animationDelay: `${index * 70}ms` }}
     >
       {isVideo ? (
         <video
@@ -53,17 +54,22 @@ function GalleryCard({
 
       {/* Caption overlay */}
       {item.caption && (
-        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent
-                        p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <p className="text-xs text-white/90 line-clamp-2">{item.caption}</p>
+        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent
+                        p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <p className="text-xs text-white/90 line-clamp-2 leading-relaxed">{item.caption}</p>
         </div>
       )}
 
       {isVideo && (
-        <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/70 rounded-full text-xs text-white">
-          ▶
+        <div className="absolute top-3 right-3 px-2.5 py-1 bg-black/60 backdrop-blur-sm
+                        rounded-full text-xs text-white flex items-center gap-1">
+          <span>▶</span>
         </div>
       )}
+
+      {/* Hover border glow */}
+      <div className="absolute inset-0 rounded-3xl border border-violet-500/0
+                      group-hover:border-violet-500/20 transition-colors duration-300" />
     </div>
   );
 }
@@ -91,7 +97,8 @@ function Lightbox({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4
+                 animate-scale-in"
       onClick={onClose}
     >
       <div
@@ -100,27 +107,30 @@ function Lightbox({
       >
         <button
           onClick={onClose}
-          className="absolute -top-10 right-0 text-neutral-400 hover:text-white text-sm transition-colors"
+          className="absolute -top-12 right-0 text-neutral-400 hover:text-white text-sm
+                     transition-colors flex items-center gap-2 px-3 py-1.5 rounded-lg
+                     bg-white/[0.05] hover:bg-white/[0.1]"
         >
-          ✕ Close (Esc)
+          ✕ Close
+          <span className="text-neutral-600 text-xs">(Esc)</span>
         </button>
         {isVideo ? (
           <video
             src={src}
             controls
             autoPlay
-            className="w-full max-h-[80vh] rounded-2xl object-contain"
+            className="w-full max-h-[80vh] rounded-3xl object-contain"
           />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={src}
             alt={item.caption || "Memory"}
-            className="w-full max-h-[80vh] rounded-2xl object-contain"
+            className="w-full max-h-[80vh] rounded-3xl object-contain"
           />
         )}
         {item.caption && (
-          <p className="text-center text-sm text-neutral-300 mt-4 px-4">
+          <p className="text-center text-sm text-neutral-300 mt-5 px-4">
             {item.caption}
           </p>
         )}
@@ -162,10 +172,11 @@ export function GallerySection({ isRevealed }: GallerySectionProps) {
   if (!isRevealed || (items.length === 0 && !loading)) return null;
 
   return (
-    <section className="max-w-2xl mx-auto px-4 sm:px-6 pb-20 pt-8 border-t border-neutral-800/60">
-      <div className="mb-6 space-y-1">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <span>📸</span> A Gallery, Just for You
+    <section className="max-w-2xl mx-auto px-4 sm:px-6 pb-20 pt-10 border-t border-white/[0.06]">
+      <div className="mb-8 space-y-2 text-center">
+        <h2 className="text-2xl font-bold text-white font-heading flex items-center justify-center gap-2">
+          <span>📸</span>
+          <span className="gradient-text-warm">A Gallery, Just for You</span>
         </h2>
         <p className="text-neutral-500 text-sm">Memories curated with love.</p>
       </div>
@@ -173,22 +184,23 @@ export function GallerySection({ isRevealed }: GallerySectionProps) {
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="skeleton aspect-square rounded-2xl" />
+            <div
+              key={i}
+              className="skeleton aspect-square rounded-3xl"
+              style={{ animationDelay: `${i * 0.08}s` }}
+            />
           ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {items.map((item, i) => (
-            <div
+            <GalleryCard
               key={item.id}
-              style={{ animationDelay: `${i * 60}ms` }}
-            >
-              <GalleryCard
-                item={item}
-                idToken={idToken}
-                onClick={() => setLightboxItem(item)}
-              />
-            </div>
+              item={item}
+              idToken={idToken}
+              onClick={() => setLightboxItem(item)}
+              index={i}
+            />
           ))}
         </div>
       )}
